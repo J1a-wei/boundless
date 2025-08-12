@@ -6,7 +6,7 @@ use alloy::{
 use anyhow::{Context, Result};
 use boundless_market::{
     contracts::{
-        boundless_market::{IBoundlessMarket},
+        boundless_market::contracts::boundless_market_contract::IBoundlessMarket,
         ProofRequest,
     },
     Deployment,
