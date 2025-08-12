@@ -66,6 +66,7 @@ pub(crate) mod prioritization;
 pub(crate) mod provers;
 pub(crate) mod proving;
 pub(crate) mod reaper;
+pub(crate) mod recalculate;
 pub(crate) mod rpc_retry_policy;
 pub(crate) mod storage;
 pub(crate) mod submitter;
@@ -140,6 +141,12 @@ pub struct Args {
     /// Log JSON
     #[clap(long, env, default_value_t = false)]
     pub log_json: bool,
+
+    /// Recalculate locked order from transaction hash
+    ///
+    /// Provide the transaction hash of a locked order to recalculate it
+    #[clap(long)]
+    pub recalculate_locked_order: Option<String>,
 }
 
 /// Status of a persistent order as it moves through the lifecycle in the database.
@@ -489,6 +496,10 @@ where
 
     pub fn deployment(&self) -> &Deployment {
         self.args.deployment.as_ref().unwrap()
+    }
+
+    pub fn db(&self) -> &DbObj {
+        &self.db
     }
 
     fn validate_deployment_config(manual: &Deployment, expected: &Deployment, chain_id: u64) {
@@ -1116,6 +1127,7 @@ pub mod test_utils {
                 rpc_retry_backoff: 200,
                 rpc_retry_cu: 1000,
                 log_json: false,
+                recalculate_locked_order: None,
             };
             Self { args, provider: ctx.prover_provider.clone(), config_file }
         }

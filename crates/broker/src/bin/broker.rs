@@ -25,7 +25,7 @@ use boundless_market::{
     dynamic_gas_filler::DynamicGasFiller,
     nonce_layer::NonceProvider,
 };
-use broker::{Args, Broker, Config, CustomRetryPolicy};
+use broker::{Args, Broker, Config, CustomRetryPolicy, recalculate::RecalculateService};
 use clap::Parser;
 use tracing_subscriber::fmt::format::FmtSpan;
 
@@ -101,6 +101,23 @@ async fn main() -> Result<()> {
             .deposit_stake_with_permit(*deposit_amount, &args.private_key)
             .await
             .context("Failed to deposit to market")?;
+    }
+
+    // Handle recalculate locked order if specified
+    if let Some(tx_hash) = args.recalculate_locked_order.as_ref() {
+        let recalculate_service = RecalculateService::new(
+            provider.clone(),
+            broker.db().clone(),
+            broker.deployment().clone(),
+        );
+        
+        recalculate_service
+            .recalculate_locked_order(tx_hash)
+            .await
+            .context("Failed to recalculate locked order")?;
+        
+        tracing::info!("Recalculate locked order completed successfully");
+        return Ok(());
     }
 
     // Await broker shutdown before returning from main
